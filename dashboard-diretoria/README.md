@@ -243,6 +243,12 @@ bateu) em vez de uma inspeção visual subjetiva.
 - **Chatbot** — rejeitado por custo de créditos de integração no plano free.
 - Créditos free-tier quase esgotados — rounds futuros exigem planejamento cuidadoso.
 
+## Especificação e protótipo
+
+- [`docs/spec-dashboard-diretoria-v1.md`](./docs/spec-dashboard-diretoria-v1.md) — especificação funcional que serviu de base para o prompt enviado à plataforma no-code.
+- [`prototype/PAINEL_Mockup_Dados_Ficticios.html`](./prototype/PAINEL_Mockup_Dados_Ficticios.html) — protótipo HTML/JS usado para validar cálculo por cálculo antes de qualquer implementação visual, com um dataset **fictício** no lugar dos dados reais originais.
+- [`prototype/PAINEL_Dashboard_Diretoria.html`](./prototype/PAINEL_Dashboard_Diretoria.html) — versão de referência do painel com o mesmo dataset fictício.
+
 ## Estrutura deste módulo
 
 ```

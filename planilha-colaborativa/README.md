@@ -103,6 +103,13 @@ Scripts disponíveis neste repositório (código verbatim, ver pasta [`scripts/`
 |---|---|
 | Anatomia-padrão (template de referência) | `_TEMPLATE_office-script-verificacao.ts` |
 | Correção de formato de data na ESTUFAGEM (API neutra, independente de idioma) | `corrigir_formato_data_estufagem.ts` |
+| Migração de dados + reestruturação de colunas (item 1) | `ITEM1_OfficeScript.ts` |
+| Reposicionamento de colunas + fórmulas + proteção (fase 2) | `Fase2_Reposicionar_Colunas.ts` |
+| Reconstrução de formatação condicional (fase 3) | `Fase3_Formatacao_Correcoes.ts` |
+| Proteger/desproteger colunas de fórmula | `Proteger_Formulas_PROGRAMACAO.ts` / `Desproteger_PROGRAMACAO.ts` |
+| Alerta de detention (3 faixas de risco) | `ITEM2_AlertaDetention.ts` |
+| Geração automática de e-mail de estufagem | `ITEM3_AbaEstufagem.ts` |
+| Dashboard de coleta com filtro por semana | `ITEM4_v2_DashboardColeta_Filtro.ts` |
 
 ## 6. Aprendizados técnicos
 
@@ -141,14 +148,24 @@ executar já pegou overrides manuais perdidos e erros de conversão de data/fór
 
 ```
 planilha-colaborativa/
-├── README.md                     # este arquivo
+├── README.md                                  # este arquivo
 ├── docs/
-│   ├── ARQUITETURA.md            # detalhamento de abas, colunas e regras de negócio
-│   └── PROMPTS.md                # engenharia de prompt — método e templates
-└── scripts/                      # Office Scripts (TypeScript)
-    ├── README.md                 # manifesto dos scripts
+│   ├── ARQUITETURA.md                         # detalhamento de abas, colunas e regras de negócio
+│   ├── PROMPTS.md                              # engenharia de prompt — método e templates
+│   └── ITEM1_Roteiro_Colunas.md                # roteiro de migração de dados e reestruturação de colunas
+└── scripts/                                    # Office Scripts (TypeScript)
+    ├── README.md                               # manifesto dos scripts
     ├── _TEMPLATE_office-script-verificacao.ts
-    └── corrigir_formato_data_estufagem.ts
+    ├── corrigir_formato_data_estufagem.ts
+    ├── ITEM1_OfficeScript.ts                    # migração de dados + reestruturação de colunas
+    ├── Fase1_1_Corrigir_K_L.ts                  # correção pós-migração (data/semana)
+    ├── Fase2_Reposicionar_Colunas.ts            # reposicionamento de colunas + fórmulas + proteção
+    ├── Fase3_Formatacao_Correcoes.ts             # reconstrução da formatação condicional
+    ├── Proteger_Formulas_PROGRAMACAO.ts
+    ├── Desproteger_PROGRAMACAO.ts
+    ├── ITEM2_AlertaDetention.ts                  # alerta de detention (3 faixas de risco)
+    ├── ITEM3_AbaEstufagem.ts                     # geração automática de e-mail de estufagem
+    └── ITEM4_v2_DashboardColeta_Filtro.ts        # dashboard de coleta com filtro por semana
 ```
 
 ## 9. Stack

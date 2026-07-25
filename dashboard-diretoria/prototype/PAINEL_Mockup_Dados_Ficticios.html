@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PAINEL — Resumo da Semana · Operador Logístico × Cliente Exportador</title>
+<style>
+  :root{
+    --plane:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+    --s1:#2a78d6; --s-green:#008300; --s-orange:#eb6834; --s-violet:#4a3aa7;
+    --st-good:#0ca30c; --st-warn:#fab219; --st-serious:#ec835a; --st-crit:#d03b3b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--plane);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.45;
+    padding:24px;max-width:1180px;margin:0 auto;}
+  h1{font-size:20px;margin:0;letter-spacing:.2px}
+  .sub{color:var(--ink2);font-size:13px;margin-top:2px}
+  .mock-badge{display:inline-block;background:#fff3d6;color:#7a5b00;border:1px solid #f0d894;
+    border-radius:999px;padding:2px 10px;font-size:11px;font-weight:600;margin-left:8px;vertical-align:middle}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  /* week selector */
+  .weeks{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 22px}
+  .weeks .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-right:2px}
+  .wk{border:1px solid var(--ring);background:var(--surface);color:var(--ink);border-radius:10px;
+    padding:8px 15px;font-size:14px;font-weight:600;cursor:pointer;transition:.12s;font-family:inherit}
+  .wk:hover{border-color:var(--s1);color:var(--s1)}
+  .wk[aria-pressed="true"]{background:var(--s1);border-color:var(--s1);color:#fff}
+  .wk.all[aria-pressed="true"]{background:var(--ink);border-color:var(--ink)}
+  .hint{color:var(--muted);font-size:12px;margin-left:6px}
+  /* KPI tiles */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+  .tile{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:14px 16px}
+  .tile .k{color:var(--ink2);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .tile .v{font-size:30px;font-weight:700;margin-top:6px;line-height:1}
+  .tile .foot{color:var(--muted);font-size:12px;margin-top:6px}
+  .tile .foot b{color:var(--ink2);font-weight:600}
+  .tile.risk .v{color:var(--st-crit)}
+  /* cards grid */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:16px 18px}
+  .card h2{font-size:14px;margin:0 0 14px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
+  .card h2 .tot{color:var(--muted);font-size:12px;font-weight:500}
+  /* horizontal bars */
+  .hbar{display:grid;grid-template-columns:120px 1fr 42px;align-items:center;gap:10px;margin:7px 0}
+  .hbar .name{font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hbar .track{background:var(--grid);border-radius:5px;height:16px;overflow:hidden}
+  .hbar .fill{height:100%;border-radius:5px;background:var(--s1)}
+  .hbar .num{font-size:13px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  /* grouped weekly bars */
+  .weekly{display:flex;gap:18px;align-items:flex-end;height:170px;padding:8px 4px 0;border-bottom:1px solid var(--axis)}
+  .wcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+  .wcol .pair{display:flex;gap:5px;align-items:flex-end;height:100%}
+  .wcol .b{width:26px;border-radius:4px 4px 0 0;position:relative;min-height:2px}
+  .wcol .b span{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+  .wcol .wl{font-size:12px;color:var(--ink2);font-weight:600;margin-top:6px}
+  .b.ret{background:var(--s1)} .b.pen{background:var(--st-warn)}
+  .legend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--ink2);flex-wrap:wrap}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  /* donut */
+  .donutwrap{display:flex;align-items:center;gap:22px}
+  .donut{flex:0 0 auto}
+  .dlabels{font-size:13px}
+  .dlabels .row{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .dlabels .row .sw{width:11px;height:11px;border-radius:3px}
+  .dlabels .row b{font-variant-numeric:tabular-nums}
+  /* detention */
+  .detrow{display:grid;grid-template-columns:130px 1fr 34px;align-items:center;gap:10px;margin:9px 0}
+  .detrow .name{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:7px}
+  .detrow .dot{width:10px;height:10px;border-radius:50%}
+  .detrow .track{background:var(--grid);border-radius:5px;height:14px;overflow:hidden}
+  .detrow .fill{height:100%;border-radius:5px}
+  .detrow .num{font-size:13px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .foot-note{color:var(--muted);font-size:12px;margin-top:26px;border-top:1px solid var(--grid);padding-top:12px}
+  .span2{grid-column:1 / -1}
+  @media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>📊 PAINEL — Resumo da Semana <span class="mock-badge">MOCKUP · dados estáticos</span></h1>
+    <div class="sub">Operador Logístico × Cliente Exportador · visão de gestão · fonte: aba PROGRAMAÇÃO (198 linhas ativas)</div>
+  </div>
+  <div class="sub" style="text-align:right">Semanas disponíveis: 27, 28, 29, 30<br><span style="color:var(--muted)">Prévia para aprovação — não implementado na planilha</span></div>
+</header>
+
+<div class="weeks" id="weeks">
+  <span class="lbl">Semana</span>
+  <button class="wk all" data-w="all" aria-pressed="true">Todas</button>
+  <button class="wk" data-w="27" aria-pressed="false">27</button>
+  <button class="wk" data-w="28" aria-pressed="false">28</button>
+  <button class="wk" data-w="29" aria-pressed="false">29</button>
+  <button class="wk" data-w="30" aria-pressed="false">30</button>
+  <span class="hint">clique para 1; segure Ctrl/⌘ ou clique em várias para somar semanas</span>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="grid">
+  <div class="card">
+    <h2>📅 Retirados × Pendentes por semana <span class="tot" id="rp-tot"></span></h2>
+    <div class="weekly" id="weekly"></div>
+    <div class="legend">
+      <span><i style="background:var(--s1)"></i>Retirados</span>
+      <span><i style="background:var(--st-warn)"></i>Pendentes (nova programação)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔵 Programação × Extra <span class="tot" id="pe-tot"></span></h2>
+    <div class="donutwrap">
+      <svg class="donut" id="donut" width="150" height="150" viewBox="0 0 42 42"></svg>
+      <div class="dlabels" id="dlabels"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌎 Contêineres por país de destino <span class="tot" id="pais-tot"></span></h2>
+    <div id="pais"></div>
+  </div>
+
+  <div class="card">
+    <h2>🏭 Contêineres por planta <span class="tot" id="planta-tot"></span></h2>
+    <div id="planta"></div>
+  </div>
+
+  <div class="card span2">
+    <h2>⚠️ Unidades em risco de detention <span class="tot" id="det-tot"></span></h2>
+    <div id="det"></div>
+    <div class="legend" style="margin-top:14px">
+      <span>Baseado na coluna <b>AF (Alerta Detention)</b> = dias de margem até a data-limite de depósito. Considera apenas unidades ativas com data calculada.</span>
+    </div>
+  </div>
+</div>
+
+<div class="foot-note" id="notes"></div>
+
+<script>
+const DATA = [{"s": "Cancelado", "p": "CANADA", "n": "PLANTA A", "h": "BK005000", "w": 28, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA E", "h": "REF1001", "w": 31, "t": "Extra", "c": "Congelada", "a": 15}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA B", "h": "REF1002", "w": 31, "t": "Programacao", "c": "Resfriada", "a": -4}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA C", "h": "REF1003", "w": 28, "t": "Extra", "c": "Resfriada", "a": 8}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA C", "h": "REF1004", "w": 27, "t": "Extra", "c": "Congelada", "a": -2}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA C", "h": "REF1005", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 5}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA E", "h": "BK005006", "w": 31, "t": "Programacao", "c": "Congelada", "a": 11}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA C", "h": "REF1007", "w": 28, "t": "Programacao", "c": "Resfriada", "a": 15}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA C", "h": "PED2008/2026", "w": 29, "t": "Extra", "c": "Congelada", "a": 8}, {"s": "Cancelado", "p": "INDONESIA", "n": "PLANTA A", "h": "PED2009/2026", "w": 31, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Nova programacao", "p": "JORDANIA", "n": "PLANTA C", "h": "PED2010/2026", "w": 29, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA D", "h": "BK005011", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 19}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA D", "h": "A DEFINIR 3012", "w": 28, "t": "Extra", "c": "Congelada", "a": 14}, {"s": "Container retirado", "p": "FILIPINAS", "n": "PLANTA E", "h": "BK005013", "w": 31, "t": "Extra", "c": "Resfriada", "a": 17}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA E", "h": "A DEFINIR 3014", "w": 27, "t": "Programacao", "c": "Congelada", "a": 1}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA D", "h": "REF1015", "w": 30, "t": "Extra", "c": "Resfriada", "a": 14}, {"s": "Nova programacao", "p": "INDONESIA", "n": "PLANTA E", "h": "REF1016", "w": 27, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA B", "h": "A DEFINIR 3017", "w": 27, "t": "Extra", "c": "Congelada", "a": 3}, {"s": "Nova programacao", "p": "CANADA", "n": "PLANTA C", "h": "PED2018/2026", "w": 28, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Nova programacao", "p": "HOLANDA", "n": "PLANTA E", "h": "REF1019", "w": 31, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA C", "h": "PED2020/2026", "w": 27, "t": "Programacao", "c": "Congelada", "a": -3}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA A", "h": "PED2021/2026", "w": 28, "t": "Extra", "c": "Congelada", "a": 17}, {"s": "Container retirado", "p": "ALEMANHA", "n": "PLANTA E", "h": "A DEFINIR 3022", "w": 28, "t": "Programacao", "c": "Resfriada", "a": 10}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA C", "h": "A DEFINIR 3023", "w": 31, "t": "Extra", "c": "Congelada", "a": 15}, {"s": "Container retirado", "p": "CANADA", "n": "PLANTA C", "h": "REF1024", "w": 31, "t": "Programacao", "c": "Congelada", "a": 1}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA A", "h": "PED2025/2026", "w": 27, "t": "Programacao", "c": "Resfriada", "a": -4}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA C", "h": "A DEFINIR 3026", "w": 28, "t": "Programacao", "c": "Resfriada", "a": 10}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA D", "h": "PED2027/2026", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 19}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA D", "h": "REF1028", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 7}, {"s": "Container retirado", "p": "ALEMANHA", "n": "PLANTA A", "h": "PED2029/2026", "w": 28, "t": "Programacao", "c": "Resfriada", "a": 19}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA C", "h": "A DEFINIR 3030", "w": 28, "t": "Programacao", "c": "Resfriada", "a": 7}, {"s": "Nova programacao", "p": "CANADA", "n": "PLANTA A", "h": "REF1031", "w": 27, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA B", "h": "A DEFINIR 3032", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 9}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA D", "h": "BK005033", "w": 30, "t": "Extra", "c": "Congelada", "a": 6}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA A", "h": "REF1034", "w": 29, "t": "Programacao", "c": "Congelada", "a": 3}, {"s": "Nova programacao", "p": "HONG KONG", "n": "PLANTA E", "h": "PED2035/2026", "w": 27, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "CANADA", "n": "PLANTA B", "h": "A DEFINIR 3036", "w": 27, "t": "Programacao", "c": "Congelada", "a": 13}, {"s": "Nova programacao", "p": "CANADA", "n": "PLANTA D", "h": "BK005037", "w": 29, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA B", "h": "BK005038", "w": 30, "t": "Extra", "c": "Congelada", "a": 2}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA E", "h": "REF1039", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 8}, {"s": "Container retirado", "p": "CANADA", "n": "PLANTA B", "h": "BK005040", "w": 29, "t": "Programacao", "c": "Resfriada", "a": 5}, {"s": "Nova programacao", "p": "EUA", "n": "PLANTA C", "h": "REF1041", "w": 31, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "CANADA", "n": "PLANTA A", "h": "PED2042/2026", "w": 29, "t": "Extra", "c": "Congelada", "a": 2}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA C", "h": "A DEFINIR 3043", "w": 29, "t": "Programacao", "c": "Congelada", "a": 0}, {"s": "Cancelado", "p": "JORDANIA", "n": "PLANTA C", "h": "REF1044", "w": 27, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Cancelado", "p": "INDONESIA", "n": "PLANTA B", "h": "A DEFINIR 3045", "w": 31, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA B", "h": "REF1046", "w": 29, "t": "Programacao", "c": "Resfriada", "a": -4}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA C", "h": "REF1047", "w": 29, "t": "Programacao", "c": "Congelada", "a": -5}, {"s": "Cancelado", "p": "CANADA", "n": "PLANTA C", "h": "A DEFINIR 3048", "w": 31, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "HOLANDA", "n": "PLANTA B", "h": "A DEFINIR 3049", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 19}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA B", "h": "BK005050", "w": 28, "t": "Programacao", "c": "Resfriada", "a": 19}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA B", "h": "A DEFINIR 3051", "w": 29, "t": "Extra", "c": "Congelada", "a": 9}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA B", "h": "A DEFINIR 3052", "w": 29, "t": "Extra", "c": "Congelada", "a": -6}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA E", "h": "A DEFINIR 3053", "w": 31, "t": "Extra", "c": "Congelada", "a": 5}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA E", "h": "BK005054", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 2}, {"s": "Container retirado", "p": "HOLANDA", "n": "PLANTA C", "h": "A DEFINIR 3055", "w": 31, "t": "Programacao", "c": "Resfriada", "a": 17}, {"s": "Nova programacao", "p": "RUSSIA", "n": "PLANTA C", "h": "REF1056", "w": 30, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "CANADA", "n": "PLANTA C", "h": "BK005057", "w": 27, "t": "Extra", "c": "Resfriada", "a": 7}, {"s": "Cancelado", "p": "JORDANIA", "n": "PLANTA C", "h": "A DEFINIR 3058", "w": 29, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA B", "h": "BK005059", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 15}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA E", "h": "BK005060", "w": 30, "t": "Extra", "c": "Resfriada", "a": 0}, {"s": "Cancelado", "p": "RUSSIA", "n": "PLANTA E", "h": "A DEFINIR 3061", "w": 28, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Nova programacao", "p": "GANA", "n": "PLANTA E", "h": "BK005062", "w": 27, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA B", "h": "REF1063", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 19}, {"s": "Nova programacao", "p": "ALEMANHA", "n": "PLANTA A", "h": "A DEFINIR 3064", "w": 30, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Nova programacao", "p": "JORDANIA", "n": "PLANTA B", "h": "PED2065/2026", "w": 27, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "HOLANDA", "n": "PLANTA E", "h": "A DEFINIR 3066", "w": 27, "t": "Programacao", "c": "Congelada", "a": -1}, {"s": "Nova programacao", "p": "ISRAEL", "n": "PLANTA D", "h": "BK005067", "w": 30, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "ALEMANHA", "n": "PLANTA D", "h": "A DEFINIR 3068", "w": 29, "t": "Programacao", "c": "Resfriada", "a": 17}, {"s": "Nova programacao", "p": "HONG KONG", "n": "PLANTA B", "h": "BK005069", "w": 30, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA C", "h": "REF1070", "w": 28, "t": "Programacao", "c": "Congelada", "a": 2}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA B", "h": "REF1071", "w": 30, "t": "Extra", "c": "Resfriada", "a": 16}, {"s": "Nova programacao", "p": "HONG KONG", "n": "PLANTA D", "h": "REF1072", "w": 28, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Nova programacao", "p": "EUA", "n": "PLANTA A", "h": "A DEFINIR 3073", "w": 30, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA D", "h": "PED2074/2026", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 18}, {"s": "Container retirado", "p": "MEXICO", "n": "PLANTA D", "h": "BK005075", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 9}, {"s": "Container retirado", "p": "FILIPINAS", "n": "PLANTA A", "h": "A DEFINIR 3076", "w": 31, "t": "Programacao", "c": "Congelada", "a": 13}, {"s": "Cancelado", "p": "JORDANIA", "n": "PLANTA B", "h": "A DEFINIR 3077", "w": 28, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA D", "h": "BK005078", "w": 29, "t": "Extra", "c": "Resfriada", "a": 4}, {"s": "Container retirado", "p": "ALEMANHA", "n": "PLANTA A", "h": "A DEFINIR 3079", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 2}, {"s": "Container retirado", "p": "CANADA", "n": "PLANTA A", "h": "REF1080", "w": 28, "t": "Programacao", "c": "Congelada", "a": 14}, {"s": "Nova programacao", "p": "ISRAEL", "n": "PLANTA B", "h": "PED2081/2026", "w": 30, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Nova programacao", "p": "EUA", "n": "PLANTA C", "h": "BK005082", "w": 28, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA A", "h": "BK005083", "w": 31, "t": "Extra", "c": "Resfriada", "a": -3}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA B", "h": "REF1084", "w": 29, "t": "Programacao", "c": "Congelada", "a": -4}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA C", "h": "REF1085", "w": 31, "t": "Extra", "c": "Congelada", "a": 11}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA A", "h": "A DEFINIR 3086", "w": 29, "t": "Extra", "c": "Congelada", "a": 20}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA E", "h": "BK005087", "w": 31, "t": "Extra", "c": "Resfriada", "a": -1}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA E", "h": "BK005088", "w": 29, "t": "Programacao", "c": "Congelada", "a": 20}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA D", "h": "A DEFINIR 3089", "w": 29, "t": "Programacao", "c": "Resfriada", "a": 8}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA B", "h": "BK005090", "w": 29, "t": "Extra", "c": "Resfriada", "a": -1}, {"s": "Nova programacao", "p": "EUA", "n": "PLANTA C", "h": "REF1091", "w": 31, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA D", "h": "PED2092/2026", "w": 30, "t": "Extra", "c": "Resfriada", "a": 17}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA B", "h": "A DEFINIR 3093", "w": 28, "t": "Extra", "c": "Resfriada", "a": -4}, {"s": "Nova programacao", "p": "FILIPINAS", "n": "PLANTA E", "h": "BK005094", "w": 30, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Nova programacao", "p": "INDONESIA", "n": "PLANTA C", "h": "BK005095", "w": 28, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA E", "h": "PED2096/2026", "w": 28, "t": "Programacao", "c": "Resfriada", "a": -3}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA E", "h": "BK005097", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 17}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA C", "h": "REF1098", "w": 31, "t": "Programacao", "c": "Resfriada", "a": 5}, {"s": "Container retirado", "p": "FILIPINAS", "n": "PLANTA C", "h": "PED2099/2026", "w": 30, "t": "Programacao", "c": "Congelada", "a": -5}, {"s": "Nova programacao", "p": "INDONESIA", "n": "PLANTA D", "h": "A DEFINIR 3100", "w": 30, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "ALEMANHA", "n": "PLANTA D", "h": "REF1101", "w": 27, "t": "Extra", "c": "Resfriada", "a": 2}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA A", "h": "PED2102/2026", "w": 28, "t": "Extra", "c": "Congelada", "a": 12}, {"s": "Container retirado", "p": "FILIPINAS", "n": "PLANTA D", "h": "PED2103/2026", "w": 31, "t": "Extra", "c": "Resfriada", "a": -3}, {"s": "Nova programacao", "p": "INDONESIA", "n": "PLANTA E", "h": "A DEFINIR 3104", "w": 29, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA C", "h": "REF1105", "w": 28, "t": "Programacao", "c": "Congelada", "a": 14}, {"s": "Nova programacao", "p": "CANADA", "n": "PLANTA B", "h": "REF1106", "w": 30, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA C", "h": "BK005107", "w": 30, "t": "Programacao", "c": "Congelada", "a": -5}, {"s": "Container retirado", "p": "HOLANDA", "n": "PLANTA E", "h": "PED2108/2026", "w": 30, "t": "Programacao", "c": "Congelada", "a": 19}, {"s": "Cancelado", "p": "ISRAEL", "n": "PLANTA C", "h": "PED2109/2026", "w": 27, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA E", "h": "BK005110", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 13}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA C", "h": "A DEFINIR 3111", "w": 30, "t": "Programacao", "c": "Congelada", "a": 16}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA E", "h": "BK005112", "w": 27, "t": "Programacao", "c": "Congelada", "a": 17}, {"s": "Cancelado", "p": "ALEMANHA", "n": "PLANTA E", "h": "REF1113", "w": 29, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Nova programacao", "p": "FILIPINAS", "n": "PLANTA D", "h": "BK005114", "w": 28, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA D", "h": "BK005115", "w": 29, "t": "Programacao", "c": "Congelada", "a": 9}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA D", "h": "BK005116", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 7}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA C", "h": "REF1117", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 4}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA E", "h": "BK005118", "w": 31, "t": "Extra", "c": "Resfriada", "a": -5}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA E", "h": "PED2119/2026", "w": 29, "t": "Extra", "c": "Resfriada", "a": 0}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA E", "h": "PED2120/2026", "w": 28, "t": "Extra", "c": "Congelada", "a": -6}, {"s": "Nova programacao", "p": "JORDANIA", "n": "PLANTA A", "h": "PED2121/2026", "w": 27, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Cancelado", "p": "ALEMANHA", "n": "PLANTA B", "h": "A DEFINIR 3122", "w": 29, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Nova programacao", "p": "HONG KONG", "n": "PLANTA B", "h": "A DEFINIR 3123", "w": 31, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "FILIPINAS", "n": "PLANTA B", "h": "REF1124", "w": 29, "t": "Extra", "c": "Resfriada", "a": 13}, {"s": "Nova programacao", "p": "INDONESIA", "n": "PLANTA A", "h": "BK005125", "w": 29, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Nova programacao", "p": "FILIPINAS", "n": "PLANTA D", "h": "BK005126", "w": 29, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA B", "h": "A DEFINIR 3127", "w": 28, "t": "Extra", "c": "Congelada", "a": 0}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA D", "h": "A DEFINIR 3128", "w": 28, "t": "Extra", "c": "Congelada", "a": 17}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA C", "h": "REF1129", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 10}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA D", "h": "PED2130/2026", "w": 27, "t": "Extra", "c": "Resfriada", "a": 17}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA D", "h": "REF1131", "w": 29, "t": "Extra", "c": "Resfriada", "a": 13}, {"s": "Cancelado", "p": "EUA", "n": "PLANTA D", "h": "REF1132", "w": 31, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Cancelado", "p": "GANA", "n": "PLANTA C", "h": "PED2133/2026", "w": 27, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Cancelado", "p": "EUA", "n": "PLANTA A", "h": "A DEFINIR 3134", "w": 28, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "HOLANDA", "n": "PLANTA A", "h": "BK005135", "w": 29, "t": "Extra", "c": "Resfriada", "a": 4}, {"s": "Container retirado", "p": "FILIPINAS", "n": "PLANTA D", "h": "PED2136/2026", "w": 28, "t": "Programacao", "c": "Congelada", "a": 1}, {"s": "Nova programacao", "p": "ALEMANHA", "n": "PLANTA D", "h": "PED2137/2026", "w": 30, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Nova programacao", "p": "GANA", "n": "PLANTA C", "h": "A DEFINIR 3138", "w": 29, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "FILIPINAS", "n": "PLANTA B", "h": "REF1139", "w": 30, "t": "Extra", "c": "Resfriada", "a": 15}, {"s": "Cancelado", "p": "JORDANIA", "n": "PLANTA C", "h": "A DEFINIR 3140", "w": 29, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Nova programacao", "p": "CANADA", "n": "PLANTA B", "h": "A DEFINIR 3141", "w": 31, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "ALEMANHA", "n": "PLANTA D", "h": "BK005142", "w": 27, "t": "Programacao", "c": "Resfriada", "a": -6}, {"s": "Container retirado", "p": "HOLANDA", "n": "PLANTA B", "h": "BK005143", "w": 28, "t": "Programacao", "c": "Resfriada", "a": 18}, {"s": "Cancelado", "p": "HOLANDA", "n": "PLANTA B", "h": "REF1144", "w": 27, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA B", "h": "REF1145", "w": 29, "t": "Extra", "c": "Resfriada", "a": 12}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA E", "h": "BK005146", "w": 31, "t": "Extra", "c": "Congelada", "a": 0}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA C", "h": "BK005147", "w": 27, "t": "Extra", "c": "Congelada", "a": 20}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA D", "h": "BK005148", "w": 27, "t": "Extra", "c": "Congelada", "a": 18}, {"s": "Container retirado", "p": "CANADA", "n": "PLANTA D", "h": "BK005149", "w": 29, "t": "Extra", "c": "Resfriada", "a": 11}, {"s": "Container retirado", "p": "RUSSIA", "n": "PLANTA D", "h": "REF1150", "w": 31, "t": "Extra", "c": "Congelada", "a": 15}, {"s": "Cancelado", "p": "CANADA", "n": "PLANTA D", "h": "BK005151", "w": 30, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA D", "h": "REF1152", "w": 27, "t": "Programacao", "c": "Congelada", "a": -5}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA E", "h": "A DEFINIR 3153", "w": 31, "t": "Programacao", "c": "Resfriada", "a": 8}, {"s": "Cancelado", "p": "CANADA", "n": "PLANTA D", "h": "A DEFINIR 3154", "w": 29, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "HONG KONG", "n": "PLANTA B", "h": "BK005155", "w": 27, "t": "Extra", "c": "Resfriada", "a": 8}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA B", "h": "REF1156", "w": 30, "t": "Programacao", "c": "Congelada", "a": 6}, {"s": "Cancelado", "p": "GANA", "n": "PLANTA E", "h": "REF1157", "w": 27, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA B", "h": "REF1158", "w": 31, "t": "Programacao", "c": "Congelada", "a": 19}, {"s": "Container retirado", "p": "HOLANDA", "n": "PLANTA B", "h": "REF1159", "w": 29, "t": "Programacao", "c": "Congelada", "a": 4}, {"s": "Nova programacao", "p": "INDONESIA", "n": "PLANTA B", "h": "REF1160", "w": 27, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "HOLANDA", "n": "PLANTA B", "h": "BK005161", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 19}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA D", "h": "REF1162", "w": 27, "t": "Extra", "c": "Resfriada", "a": -2}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA A", "h": "A DEFINIR 3163", "w": 31, "t": "Programacao", "c": "Congelada", "a": 10}, {"s": "Cancelado", "p": "FILIPINAS", "n": "PLANTA C", "h": "A DEFINIR 3164", "w": 27, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA A", "h": "A DEFINIR 3165", "w": 30, "t": "Programacao", "c": "Congelada", "a": 7}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA A", "h": "PED2166/2026", "w": 29, "t": "Extra", "c": "Resfriada", "a": 13}, {"s": "Nova programacao", "p": "FILIPINAS", "n": "PLANTA C", "h": "A DEFINIR 3167", "w": 31, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA E", "h": "PED2168/2026", "w": 30, "t": "Extra", "c": "Congelada", "a": 14}, {"s": "Container retirado", "p": "ALEMANHA", "n": "PLANTA D", "h": "A DEFINIR 3169", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 4}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA C", "h": "BK005170", "w": 28, "t": "Extra", "c": "Congelada", "a": 4}, {"s": "Container retirado", "p": "CANADA", "n": "PLANTA A", "h": "A DEFINIR 3171", "w": 27, "t": "Extra", "c": "Congelada", "a": 20}, {"s": "Nova programacao", "p": "MEXICO", "n": "PLANTA E", "h": "BK005172", "w": 27, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Cancelado", "p": "HOLANDA", "n": "PLANTA D", "h": "REF1173", "w": 29, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "FILIPINAS", "n": "PLANTA B", "h": "PED2174/2026", "w": 30, "t": "Programacao", "c": "Congelada", "a": 12}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA A", "h": "BK005175", "w": 31, "t": "Programacao", "c": "Resfriada", "a": 11}, {"s": "Nova programacao", "p": "HOLANDA", "n": "PLANTA E", "h": "REF1176", "w": 31, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA C", "h": "BK005177", "w": 29, "t": "Programacao", "c": "Congelada", "a": 2}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA D", "h": "REF1178", "w": 28, "t": "Programacao", "c": "Congelada", "a": 12}, {"s": "Nova programacao", "p": "RUSSIA", "n": "PLANTA D", "h": "A DEFINIR 3179", "w": 30, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "EUA", "n": "PLANTA C", "h": "REF1180", "w": 27, "t": "Programacao", "c": "Congelada", "a": 3}, {"s": "Nova programacao", "p": "MEXICO", "n": "PLANTA A", "h": "BK005181", "w": 30, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Nova programacao", "p": "HONG KONG", "n": "PLANTA D", "h": "BK005182", "w": 28, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA E", "h": "A DEFINIR 3183", "w": 31, "t": "Extra", "c": "Congelada", "a": -3}, {"s": "Container retirado", "p": "COSTA DO MARFIM", "n": "PLANTA A", "h": "REF1184", "w": 28, "t": "Extra", "c": "Congelada", "a": 6}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA C", "h": "BK005185", "w": 27, "t": "Programacao", "c": "Resfriada", "a": 18}, {"s": "Container retirado", "p": "ISRAEL", "n": "PLANTA D", "h": "PED2186/2026", "w": 31, "t": "Extra", "c": "Congelada", "a": -1}, {"s": "Container retirado", "p": "MEXICO", "n": "PLANTA D", "h": "REF1187", "w": 30, "t": "Programacao", "c": "Resfriada", "a": 17}, {"s": "Nova programacao", "p": "JORDANIA", "n": "PLANTA E", "h": "A DEFINIR 3188", "w": 30, "t": "Extra", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA B", "h": "A DEFINIR 3189", "w": 29, "t": "Programacao", "c": "Resfriada", "a": -6}, {"s": "Container retirado", "p": "JORDANIA", "n": "PLANTA E", "h": "A DEFINIR 3190", "w": 31, "t": "Programacao", "c": "Resfriada", "a": 1}, {"s": "Container retirado", "p": "EGITO", "n": "PLANTA B", "h": "BK005191", "w": 28, "t": "Programacao", "c": "Congelada", "a": 17}, {"s": "Nova programacao", "p": "FILIPINAS", "n": "PLANTA B", "h": "BK005192", "w": 29, "t": "Programacao", "c": "Congelada", "a": null}, {"s": "Container retirado", "p": "INDONESIA", "n": "PLANTA B", "h": "PED2193/2026", "w": 31, "t": "Programacao", "c": "Congelada", "a": -2}, {"s": "Container retirado", "p": "GANA", "n": "PLANTA D", "h": "A DEFINIR 3194", "w": 31, "t": "Extra", "c": "Resfriada", "a": 18}, {"s": "Cancelado", "p": "EGITO", "n": "PLANTA B", "h": "A DEFINIR 3195", "w": 27, "t": "Extra", "c": "Resfriada", "a": null}, {"s": "Cancelado", "p": "INDONESIA", "n": "PLANTA C", "h": "REF1196", "w": 29, "t": "Programacao", "c": "Resfriada", "a": null}, {"s": "Nova programacao", "p": "HONG KONG", "n": "PLANTA A", "h": "REF1197", "w": 29, "t": "Extra", "c": "Congelada", "a": null}];
+// ---- normalization helpers ----
+const normPais = p => {
+  const u = (p||'').toUpperCase().trim();
+  if(u==='MEXICO') return 'MÉXICO';
+  return u || '(sem país)';
+};
+const normPlanta = n => (n||'').toUpperCase().trim() || '(sem planta)';
+const isCanc = r => (r.s||'').toLowerCase()==='cancelado';
+const isRet  = r => (r.s||'')==='Container retirado';
+const isPend = r => (r.s||'')==='Nova programação';
+
+let selected = new Set(); // empty = Todas
+
+function currentRows(){
+  const active = DATA.filter(r=>!isCanc(r));
+  if(selected.size===0) return active;
+  return active.filter(r=> selected.has(r.w));
+}
+const fmt = n => n.toLocaleString('pt-BR');
+
+// ---- KPI ----
+function renderKpis(rows){
+  const contratos = new Set(rows.map(r=>r.h).filter(Boolean)).size;
+  const ret = rows.filter(isRet).length;
+  const pend = rows.filter(isPend).length;
+  const prog = rows.filter(r=>r.t==='Programacao').length;
+  const extra = rows.filter(r=>r.t==='Extra').length;
+  const risco = rows.filter(r=> r.a!==null && r.a<=2).length;
+  const tiles = [
+    {k:'Contratos', v:contratos, foot:`REF. cliente distintas`},
+    {k:'Contêineres ativos', v:rows.length, foot:`<b>${fmt(prog)}</b> programação · <b>${fmt(extra)}</b> extra`},
+    {k:'Retirados', v:ret, foot:`de ${fmt(rows.length)} ativos`},
+    {k:'Pendentes', v:pend, foot:`aguardando retirada`},
+    {k:'Risco detention', v:risco, foot:`≤ 2 dias de margem`, cls:'risk'},
+  ];
+  document.getElementById('kpis').innerHTML = tiles.map(t=>
+    `<div class="tile ${t.cls||''}"><div class="k">${t.k}</div><div class="v">${fmt(t.v)}</div><div class="foot">${t.foot}</div></div>`).join('');
+}
+
+// ---- weekly grouped bars (always all weeks; highlights selection) ----
+function renderWeekly(){
+  const weeks=[27,28,29,30];
+  const active = DATA.filter(r=>!isCanc(r));
+  const data = weeks.map(w=>({w, ret:active.filter(r=>r.w===w&&isRet(r)).length, pen:active.filter(r=>r.w===w&&isPend(r)).length}));
+  const max = Math.max(1, ...data.flatMap(d=>[d.ret,d.pen]));
+  document.getElementById('weekly').innerHTML = data.map(d=>{
+    const dim = selected.size>0 && !selected.has(d.w) ? 'opacity:.28' : '';
+    return `<div class="wcol" style="${dim}">
+      <div class="pair" style="height:100%">
+        <div class="b ret" style="height:${d.ret/max*100}%"><span>${d.ret}</span></div>
+        <div class="b pen" style="height:${d.pen/max*100}%"><span>${d.pen}</span></div>
+      </div><div class="wl">SEM ${d.w}</div></div>`;
+  }).join('');
+  const tr=data.reduce((a,d)=>a+d.ret,0), tp=data.reduce((a,d)=>a+d.pen,0);
+  document.getElementById('rp-tot').textContent=`${tr} retirados · ${tp} pendentes (todas)`;
+}
+
+// ---- donut prog x extra ----
+function renderDonut(rows){
+  const prog=rows.filter(r=>r.t==='Programacao').length;
+  const extra=rows.filter(r=>r.t==='Extra').length;
+  const tot=prog+extra||1;
+  const pPct=prog/tot*100;
+  const svg=document.getElementById('donut');
+  svg.innerHTML=`
+   <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--grid)" stroke-width="6"></circle>
+   <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--s1)" stroke-width="6"
+     stroke-dasharray="${pPct} ${100-pPct}" stroke-dashoffset="25"></circle>
+   <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--s-orange)" stroke-width="6"
+     stroke-dasharray="${100-pPct} ${pPct}" stroke-dashoffset="${25-pPct}"></circle>
+   <text x="21" y="20" text-anchor="middle" font-size="7" font-weight="700" fill="var(--ink)">${tot}</text>
+   <text x="21" y="26" text-anchor="middle" font-size="3.4" fill="var(--muted)">ativos</text>`;
+  document.getElementById('dlabels').innerHTML=
+    `<div class="row"><span class="sw" style="background:var(--s1)"></span>Programação <b>&nbsp;${prog}</b>&nbsp;<span style="color:var(--muted)">(${Math.round(pPct)}%)</span></div>
+     <div class="row"><span class="sw" style="background:var(--s-orange)"></span>Extra <b>&nbsp;${extra}</b>&nbsp;<span style="color:var(--muted)">(${Math.round(100-pPct)}%)</span></div>`;
+  document.getElementById('pe-tot').textContent=`${tot} ativos`;
+}
+
+// ---- horizontal bar list ----
+function renderHBars(rows, keyFn, elId, totId){
+  const counts={};
+  rows.forEach(r=>{const k=keyFn(r);counts[k]=(counts[k]||0)+1;});
+  const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=Math.max(1,...arr.map(a=>a[1]));
+  document.getElementById(elId).innerHTML=arr.map(([name,v])=>
+    `<div class="hbar"><div class="name" title="${name}">${name}</div>
+     <div class="track"><div class="fill" style="width:${v/max*100}%"></div></div>
+     <div class="num">${v}</div></div>`).join('');
+  document.getElementById(totId).textContent=`${arr.length} ${elId==='pais'?'países':'plantas'} · ${rows.length} und.`;
+}
+
+// ---- detention risk breakdown ----
+function renderDet(rows){
+  const withA=rows.filter(r=>r.a!==null);
+  const buckets=[
+    {name:'Estourado (< 0)', color:'var(--st-crit)', n:withA.filter(r=>r.a<0).length},
+    {name:'Crítico (0–2 dias)', color:'var(--st-serious)', n:withA.filter(r=>r.a>=0&&r.a<=2).length},
+    {name:'Atenção (3–5 dias)', color:'var(--st-warn)', n:withA.filter(r=>r.a>=3&&r.a<=5).length},
+    {name:'Ok (> 5 dias)', color:'var(--st-good)', n:withA.filter(r=>r.a>5).length},
+  ];
+  const max=Math.max(1,...buckets.map(b=>b.n));
+  document.getElementById('det').innerHTML=buckets.map(b=>
+    `<div class="detrow"><div class="name"><span class="dot" style="background:${b.color}"></span>${b.name}</div>
+     <div class="track"><div class="fill" style="width:${b.n/max*100}%;background:${b.color}"></div></div>
+     <div class="num">${b.n}</div></div>`).join('');
+  const semData=rows.length-withA.length;
+  document.getElementById('det-tot').textContent=`${withA.filter(r=>r.a<=2).length} em risco · ${semData} sem data`;
+}
+
+function renderNotes(){
+  document.getElementById('notes').innerHTML =
+   `Observações do mockup: (1) valores são um retrato estático da planilha atual — no painel real serão fórmulas/tabelas dinâmicas ligadas à PROGRAMAÇÃO. `+
+   `(2) A coluna <b>AX (Documentação/CSI)</b> ainda está vazia na base, então o KPI de "docs pendentes" foi omitido até definirmos o preenchimento. `+
+   `(3) Foram unificados <b>MÉXICO</b> e <b>MEXICO</b> (grafias diferentes na coluna D) — vale padronizar na origem via lista suspensa.`;
+}
+
+function renderAll(){
+  const rows=currentRows();
+  renderKpis(rows); renderWeekly(); renderDonut(rows);
+  renderHBars(rows, r=>normPais(r.p), 'pais','pais-tot');
+  renderHBars(rows, r=>normPlanta(r.n), 'planta','planta-tot');
+  renderDet(rows); renderNotes();
+}
+
+// ---- week selector behavior ----
+document.getElementById('weeks').addEventListener('click', e=>{
+  const btn=e.target.closest('.wk'); if(!btn) return;
+  const w=btn.dataset.w;
+  if(w==='all'){ selected.clear(); }
+  else {
+    const num=parseInt(w);
+    const multi = e.ctrlKey||e.metaKey;
+    if(multi){ selected.has(num)?selected.delete(num):selected.add(num); }
+    else { if(selected.size===1&&selected.has(num)) selected.clear(); else {selected.clear();selected.add(num);} }
+  }
+  document.querySelectorAll('.wk').forEach(b=>{
+    const bw=b.dataset.w;
+    const on = bw==='all' ? selected.size===0 : selected.has(parseInt(bw));
+    b.setAttribute('aria-pressed', on?'true':'false');
+  });
+  renderAll();
+});
+
+renderAll();
+</script>
+</body>
+</html>
